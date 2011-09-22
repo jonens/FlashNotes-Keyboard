@@ -1,0 +1,13 @@
+FlashNotes Keyboard
+A web-based music game using JavaScript.
+Copyright 2011 Jon Ensminger
+
+This code uses a number of Javascript libraries, including:
+
+JQuery
+Raphael
+VexFlow
+
+VexFlow code was modified slightly to adapt to the game-playing requirements.
+
+I use Google Closure compiler to build the minified script.
