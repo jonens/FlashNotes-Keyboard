@@ -289,7 +289,6 @@ Flash.Notes.Keyboard.StatusModel.prototype.toggleAccidental = function (t) {
 	accidental_on[type] = !accidental_on[type];
 	acc_single = cfg.ACCIDENTAL_ON.single_acc;
 	acc_double = cfg.ACCIDENTAL_ON.double_acc;
-	console.log("acc_single: " + acc_single + " acc_double: " + acc_double);
 	if (acc_single && !acc_double) {
 		toggle_state = cfg.ACC_SINGLE;
 	}

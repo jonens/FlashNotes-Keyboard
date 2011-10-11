@@ -24,6 +24,7 @@ Flash.Notes.Keyboard.NotationModel = function()
 	this.accidental_range = cfg.SINGLE_C;
 	this.add_accidental = false;
 	this.accidental_type = cfg.ACC_TYPE_C;
+	this.accidental = cfg.NONE;
 	this.add_key_signature = false;
 	this.clefIndexArray = [cfg.TREBLE, cfg.BASS, cfg.ALTO, cfg.TENOR];
 	this.clefIndexProperties = {
@@ -152,6 +153,15 @@ Flash.Notes.Keyboard.NotationModel.prototype.getAccidentalType = function () {
 	return this.accidental_type;
 }
 
+Flash.Notes.Keyboard.NotationModel.prototype.getAccidental = function () {
+	return this.accidental;
+}
+
+Flash.Notes.Keyboard.NotationModel.prototype.setAccidental = function (accid) {
+	this.accidental = accid;
+	return this;
+}
+
 /* Switch - @param boolean add -- if true, add key signature to stave */
 Flash.Notes.Keyboard.NotationModel.prototype.setAddKeySignature = function (add) {
 	this.add_key_signature = add;
@@ -195,11 +205,10 @@ Flash.Notes.Keyboard.NotationModel.prototype.updateKeySignature = function (offs
 	else {
 		this.keySig = (result <= this.KS_MAX) ? result : this.KS_MAX;
 	}
-	//this.keySig = cfg.KEY_SIGS[this.ks_index];
 	this.convertNoteValue();
 }
 
-Flash.Notes.Keyboard.NotationModel.prototype.setKsIndex = function (index) {
+Flash.Notes.Keyboard.NotationModel.prototype.setKeySigIndex = function (index) {
 	this.ks_index = index;
 	return this;
 }

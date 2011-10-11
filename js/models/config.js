@@ -80,6 +80,11 @@ Flash.Notes.Keyboard.Config = function () {
 	this.KS_LAYER_WIDTH = 100;
 	this.NOTE_LAYER_WIDTH = 146;
 	
+	this.CLEF_X = 0;
+	this.CLEF_WIDTH = 70;
+	
+	this.NOTE_START_X = 160;
+	
 	//Clef Types
 	this.CLEF_TYPES = ["treble", "bass", "alto", "tenor"];
 	
@@ -111,6 +116,14 @@ Flash.Notes.Keyboard.Config = function () {
 			'single_acc': false, 
 			'double_acc': false
 		};
+		
+	//accidental code indices
+	this.NATURAL = "n";
+	this.SHARP = "#";
+	this.DOUBLE_SHARP = "##";
+	this.FLAT = "b";
+	this.DOUBLE_FLAT = "bb";
+	this.NONE = "";
 	
 	//Key Signature Specs
 	this.C = 7;

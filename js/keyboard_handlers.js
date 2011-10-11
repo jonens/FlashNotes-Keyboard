@@ -14,17 +14,8 @@ $(document).ready(function () {
 		statusModel = new Flash.Notes.Keyboard.StatusModel();
 		statusView = new Flash.Notes.Keyboard.StatusView();
 		notationModel = new Flash.Notes.Keyboard.NotationModel();
-		notationController = new Flash.Notes.Keyboard.NotationController(cfg.MIN_RANGE);			
+		notationController = new Games.Notation.NotationController();			
 		gameController = new Flash.Notes.Keyboard.GameController();
-		
-		$("div.staff_area canvas")[0].width = cfg.BG_LAYER_WIDTH;
-		$("div.staff_area canvas")[0].height = cfg.BG_LAYER_HEIGHT;
-		$("div.staff_area canvas")[1].width = cfg.CLEF_LAYER_WIDTH;
-		$("div.staff_area canvas")[1].height = cfg.BG_LAYER_HEIGHT;
-		$("div.staff_area canvas")[2].width = cfg.KS_LAYER_WIDTH;
-		$("div.staff_area canvas")[2].height = cfg.BG_LAYER_HEIGHT;
-		$("div.staff_area canvas")[3].width = cfg.NOTE_LAYER_WIDTH;
-		$("div.staff_area canvas")[3].height = cfg.BG_LAYER_HEIGHT;
 		$('.accid_sel_Btn').addClass('off');
 		$('#stop').hide();
 		$('#menu_frame').show();
@@ -149,7 +140,7 @@ $(document).ready(function () {
 		});
 		$('.black_key_Btn').click(function () {
 			var $input = $(this);		
-			var code = $input.attr('value');			
+			var code = $input.attr('value');
 			keyId = inputs[code];
 			gameController.continueGame(code, keyId);		
 		});
@@ -170,7 +161,6 @@ $(document).ready(function () {
 		$('.accid_sel_Btn').click(function () {
 			var t = $(this).attr('value');
 			gameController.toggleAccidental(t);
-			console.log("type: " + t);
 			$('#c').focus();
 		});
 		$('.keysig_sel_Btn').click(function () {
@@ -206,7 +196,7 @@ $(document).ready(function () {
 				gameController.updateLevel();
 			}
 			else
-			{						
+			{
 				$('#game_frame').show();
 			}		
 			$('#c').focus();

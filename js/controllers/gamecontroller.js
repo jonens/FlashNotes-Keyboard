@@ -11,7 +11,9 @@ Flash.Notes.Keyboard.GameController = function () {
 	}
 	this.setMaxLevel = function (max) {
 		maxLevel = max;
-	}		
+	}
+	this.stave;
+	this.canvas_id = "staff";
 	this.init();	
 }
 
@@ -28,20 +30,48 @@ Flash.Notes.Keyboard.GameController.prototype.init = function () {
 	statusModel.setOverlayVisible(false);
 	statusView.displayKeyOverlay(false);
 	statusView.displayTime("#status_timer", 0);	
-	notationController.hideNote();
-	notationController.drawClef(cfg.TREBLE);
-	notationModel.setKsIndex(cfg.KS_C_INDEX);
+	this.stave = notationController.drawStaff(this.canvas_id, 10, 20, 330, cfg.LARGE);
+	notationController.hideNote(this.canvas_id, this.stave);
+	notationController.drawClef("staff", this.stave, "treble");
+	notationModel.setKeySigIndex(cfg.KS_C_INDEX);
+	notationModel.setClefIndex(cfg.TREBLE);
 	notationModel.setAddAccidental(false);
 	notationModel.setAccidentalRange(cfg.ACC_NONE);
+	notationModel.setAccidental(cfg.NONE);
 	notationModel.setKeySignature(cfg.C);
-	notationController.drawKeySignature(cfg.C);	
+	notationController.drawKeySignature(this.canvas_id, this.stave, "C", cfg.TREBLE);
 	notationController.setRangeIndex(cfg.MIN_RANGE_INDEX);
 	$('#start_button').hide();
 	$('#stop_button').hide();
 	this.initClefs(cfg.TREBLE);
 	this.initAccidentals();
-	this.displayScore();	
+	this.displayScore();
+	
 	return this;
+}
+
+Flash.Notes.Keyboard.GameController.prototype.displayPractice = function () {
+	this.init();
+	this.setMode(cfg.PRACTICE_MODE);
+	$('#menu_frame').hide();
+	$('#status_level_label').html("");
+	$('#status_level').html("");
+	$('#game_frame').show();		
+	$('#menu_buttons').show();
+	$('#game_status_box').hide();
+	$('#stop_button').hide();
+	$('#start_button').show();	
+	statusView.initHitDisplay("hit_light");
+}
+
+Flash.Notes.Keyboard.GameController.prototype.displayGame = function () {
+	this.init();
+	this.setMode(cfg.GAME_MODE);
+	statusView.initLivesDisplay("game_lives", cfg.MAX_LIVES);
+	statusView.initHitDisplay("hit_light");
+	$('#status_level_label').html("Level:");
+	$('#status_level').html("1");
+	this.displaySessionAlert(true, false, false);		
 }
 
 Flash.Notes.Keyboard.GameController.prototype.setMode = function (mode) {
@@ -71,10 +101,13 @@ Flash.Notes.Keyboard.GameController.prototype.initAccidentals = function () {
 }
 
 Flash.Notes.Keyboard.GameController.prototype.startGame = function (timer_id) {
-	var start = statusModel.getStart();
-	var key_id = "c";
-	var mode = statusModel.getMode();
-	statusModel.keyId = key_id;	
+	var start = statusModel.getStart(),
+		key_id = "c",
+		mode = statusModel.getMode(),
+		clef_index = notationModel.getClefIndex(),
+		clef_type = cfg.CLEF_TYPES[clef_index],
+		note, note_name;
+	statusModel.keyId = key_id;
 	if (!start){		
 		statusModel.start(true);
 		document.getElementById(key_id).focus();
@@ -85,12 +118,67 @@ Flash.Notes.Keyboard.GameController.prototype.startGame = function (timer_id) {
 			case cfg.PRACTICE_MODE:				
 				this.startTimer(timer_id, 0, mode);
 				break;
-		}		
-		notationController.drawNote();
+		}
+		notationController.drawKeySignature(this.canvas_id, this.stave,	
+			notationModel.getKeySignature(), notationModel.getClefIndex());
+		note_name = this.getNoteName();
+		note = notationController.drawNote(this.canvas_id, this.stave, note_name, "w", 
+			clef_type, cfg.LARGE_W, Vex.Flow.TIME4_4, notationModel.getAccidental());
 	}
 	else{		
 		this.stopGame();
 	}
+}
+
+Flash.Notes.Keyboard.GameController.prototype.getNoteName = function () {
+	var range_index = notationModel.getRangeIndex(),
+		clef_index = notationModel.getClefIndex(),
+		clef_type = cfg.CLEF_TYPES[clef_index],
+		accidental,
+		note_props = Flash.Notes.Keyboard.noteRangeProperties(clef_index),
+		octave_range = (note_props.upper_octave[range_index] - 
+							note_props.base_octave[range_index]) + 1,
+		octave_offset = Math.round(Math.random() * 10) % octave_range,
+		octave = note_props.base_octave[range_index] + octave_offset,
+		note_base, note_range, note_offset, note_index, note_name, key;
+	notationModel.setOctave(octave);
+	
+	/****** get a random note within range given by properties	******/ 
+	if (octave_offset === 0) { //lowest octave
+		note_base = note_props.base_index[range_index];		
+		note_range = 6 - note_base;	//prevent wrap-around to lower-than-base note
+	}
+	else if (octave_offset === (octave_range - 1)) {//highest octave
+		note_base = 0;		
+		note_range = note_props.upper_index[range_index]; //only as high as highest note in range	
+	}
+	else { //full range of notes
+		note_base = 0;		
+		note_range = 6;		
+	}
+	note_offset = (note_range > 0 ) ? Math.round(Math.random() * 10000) % note_range : 0;	
+	note_index = note_base + note_offset; //0 - 6
+	notationModel.setNoteIndex(note_index);
+	/******** Set the correct note value for matching purposes in the game ****/
+	note_name = Vex.Flow.integerToNoteLetter(note_index);
+	if (notationModel.getAddAccidental()) {
+		accidental = notationModel.randomAccidental();
+		notationModel.setAccidental(accidental);
+		if (accidental) {
+			note_name += accidental;
+			notationController.drawKeySignature(this.canvas_id, this.stave, 
+				notationModel.getKeySignature(), clef_index);
+		}
+	}
+	if (notationModel.getAddKeySignature() && !accidental) {
+		note_name += Flash.Notes.Keyboard.keySignatureAccidentals(notationModel.getKeySignature(),
+				notationModel.getNoteIndex());
+		notationController.drawKeySignature(this.canvas_id, this.stave, 
+			notationModel.getKeySignature(), clef_index);
+	}
+	note_name = "" + note_name + "/" + octave + "";
+	notationModel.setNoteValue(note_name);	
+	return note_name;
 }
 
 Flash.Notes.Keyboard.GameController.prototype.startTimer = function (timer_id, timeOut, mode) {
@@ -126,6 +214,8 @@ Flash.Notes.Keyboard.GameController.prototype.continueGame = function (code, key
 	var lives, match,
 		start = statusModel.getStart(),
 		level = statusModel.getLevel(),
+		clef_index,
+		clef_type,
 		isGame = (statusModel.getMode() === cfg.GAME_MODE) ? true : false;
 	statusModel.keyCode = parseInt(code) % 12;
 	statusModel.value = notationController.getNoteValue();
@@ -142,22 +232,39 @@ Flash.Notes.Keyboard.GameController.prototype.continueGame = function (code, key
 		statusView.updateLivesDisplay();
 	}
 	if (start && match){	
-		if (this.getMaxLevel()) {		
-			notationController.drawClef(notationController.getRandomClefIndex(4, 0));
+		if (this.getMaxLevel()) {
+			clef_index = notationController.getRandomClefIndex(4, 0);
+			notationModel.setClefIndex(clefIndex);
+			clef_type = cfg.CLEF_TYPES[clef_index];
+			notationController.drawClef(this.canvas_id, this.stave, clef_type);			
 		}
 		else {
 			if (level >=5 && level <= 8) {
-				notationController.drawClef(notationController.getRandomClefIndex(2, 0));
+				clef_index = notationController.getRandomClefIndex(2, 0);
+				notationModel.setClefIndex(clef_index);
+				clef_type = cfg.CLEF_TYPES[clef_index];
+				notationController.drawClef(this.canvas_id, this.stave, clef_type);
 			}
 			if (level >=13 && level <= 16) {
-				notationController.drawClef(notationController.getRandomClefIndex(2, 2));
+				clef_index = notationController.getRandomClefIndex(2, 2);
+				notationModel.setClefIndex(clef_index);
+				clef_type = cfg.CLEF_TYPES[clef_index];
+				notationController.drawClef(this.canvas_id, this.stave, clef_type);				
 			}			
 		}
 		if (!isGame) {
+			clef_index = statusModel.getRandomClefIndex();
+			notationModel.setClefIndex(clef_index);
+			clef_type = cfg.CLEF_TYPES[clef_index];
 			this.setPracticeRange();
-			notationController.drawClef(statusModel.getRandomClefIndex());
+			notationController.drawClef(this.canvas_id, this.stave, clef_type);			
 		}
-		notationController.drawNote();
+		clef_index = notationModel.getClefIndex();
+		clef_type = cfg.CLEF_TYPES[clef_index];
+		notationController.hideNote(this.canvas_id, this.stave);
+		note = notationController.drawNote(this.canvas_id, this.stave, 
+			this.getNoteName(), "w", clef_type, cfg.LARGE_W, Vex.Flow.TIME4_4,
+			notationModel.getAccidental());
 		statusModel.addPoint();
 		statusModel.calculateScore();
 	}
@@ -171,7 +278,9 @@ Flash.Notes.Keyboard.GameController.prototype.continueGame = function (code, key
 Flash.Notes.Keyboard.GameController.prototype.stopGame = function () {
 	var next_level, level, game_over;
 	statusModel.start(false);	
-	notationController.hideNote();	
+	notationController.hideNote(this.canvas_id, this.stave);
+	notationController.drawKeySignature(this.canvas_id, this.stave,	
+		notationModel.getKeySignature(), notationModel.getClefIndex());
 	document.getElementById(statusModel.keyId).blur();	
 	if (statusModel.getMode() === cfg.GAME_MODE){
 		next_level = statusModel.isLevelAdvance(); 
@@ -215,14 +324,21 @@ Flash.Notes.Keyboard.GameController.prototype.toggleClef = function (index) {
 				statusModel.clefButtons[index].removeClass('off');
 				statusModel.clefButtons[index].addClass('on');
 				notationModel.clefIndexProperties[index] = true;
-				notationController.drawClef(index);
+				notationController.drawClef(this.canvas_id, this.stave, cfg.CLEF_TYPES[index]);
+				notationModel.setClefIndex(index);
+				notationController.drawKeySignature(this.canvas_id, this.stave, 
+					notationModel.getKeySignature(), notationModel.getClefIndex());
 				break;
 			case cfg.TOGGLE_OFF:
 				statusModel.clefButtons[index].removeClass('on');
 				statusModel.clefButtons[index].addClass('off');
 				notationModel.clefIndexProperties[index] = false;
 				clef_index = notationModel.practiceClefIndex();
-				notationController.drawClef(clef_index);				
+				notationController.drawClef(this.canvas_id, this.stave, 
+					cfg.CLEF_TYPES[clef_index]);
+				notationModel.setClefIndex(clef_index);
+				notationController.drawKeySignature(this.canvas_id, this.stave, 
+					notationModel.getKeySignature(), notationModel.getClefIndex());
 				break;
 			default:
 				break;
@@ -293,7 +409,8 @@ Flash.Notes.Keyboard.GameController.prototype.updateKeySignature = function (dir
 		var key_sig;
 		notationModel.updateKeySignature(dir);
 		key_sig = notationModel.getKeySigIndex();
-		notationController.drawKeySignature(key_sig);
+		notationController.drawKeySignature(this.canvas_id, this.stave,
+			cfg.KEY_SIGS[key_sig], notationModel.getClefIndex());
 		if (key_sig != cfg.C) {
 			notationModel.setAddKeySignature(true);			
 			if (cfg.ACCIDENTAL_ON.single_acc && !cfg.ACCIDENTAL_ON.double_acc) {
@@ -304,7 +421,7 @@ Flash.Notes.Keyboard.GameController.prototype.updateKeySignature = function (dir
 			}			
 		}
 		else {
-			notationModel.setAddKeySignature(false);			
+			notationModel.setAddKeySignature(false);
 			if (cfg.ACCIDENTAL_ON.single_acc && !cfg.ACCIDENTAL_ON.double_acc) {
 				notationModel.setAccidentalRange(cfg.ACC_SINGLE);
 			}			
@@ -330,9 +447,11 @@ Flash.Notes.Keyboard.GameController.prototype.setPracticeRange = function () {
 	if (pct >= cfg.P_HIGH_PCT && (att % cfg.PRACTICE_ATT === 0) && 
 				range < cfg.MAX_RANGE) {		
 		notationController.setRangeIndex(range + 1);
+		notationModel.setRangeIndex(range + 1);
 	}
 	if (pct < cfg.P_LOW_PCT && range > cfg.MIN_RANGE) {		
 		notationController.setRangeIndex(range - 1);
+		notationModel.setRangeIndex(range - 1);
 	}
 }
 		
@@ -341,42 +460,54 @@ Flash.Notes.Keyboard.GameController.prototype.setPracticeRange = function () {
 Flash.Notes.Keyboard.GameController.prototype.updateLevel = function () {
 	var level = statusModel.getLevel(),
 		range = ((level % 2) === 0) ? (level/2 - 1) : Math.floor(level/2),
-		clef_index;
+		clef_index, clef_type;
 	statusModel.setGameClefTypes();
 	clef_index = statusModel.getRandomClefIndex();
-	range = range % (cfg.MAX_RANGE + 1);	
+	clef_type = cfg.CLEF_TYPES[clef_index];
+	range = range % (cfg.MAX_RANGE + 1);
 	if (level === cfg.MAX_LEVEL) {
 		this.setMaxLevel(true);
 		notationModel.setKeySignature(notationModel.randomKeySignature());
-		notationController.drawClef(notationController.getRandomClefIndex(4, 0));
+		notationController.drawClef(this.canvas_id, this.stave, 
+				notationController.getRandomClefIndex(4, 0));
+		notationModel.setClefIndex(clef_index);
 		notationController.setRangeIndex(cfg.MAX_RANGE);
+		notationModel.setRangeIndex(cfg.MAX_RANGE);
 	}
 	else{		
 		switch (clef_index) {
 			case cfg.RANDOM_TB:
-				notationController.drawClef(notationController.getRandomClefIndex(2, 0));
+				clef_index = notationController.getRandomClefIndex(2, 0);
+				clef_type = cfg.CLEF_TYPES[clef_index];
+				notationController.drawClef(this.canvas_id, this.stave, clef_type);
+				notationModel.setClefIndex(clef_index);
 				break;
-			case cfg.RANDOM_AT:
-				notationController.drawClef(notationController.getRandomClefIndex(2, 2));
+			case cfg.RANDOM_AT:				
+				clef_index = notationController.getRandomClefIndex(2, 2);
+				clef_type = cfg.CLEF_TYPES[clef_index];
+				notationController.drawClef(this.canvas_id, this.stave, clef_type);
+				notationModel.setClefIndex(clef_index);
 				break;
 			default:
-				notationController.drawClef(clef_index);
+				notationController.drawClef(this.canvas_id, this.stave, clef_type);
+				notationModel.setClefIndex(clef_index);
 				break;
 		}		
 		notationController.setRangeIndex(range);
+		notationModel.setRangeIndex(range);
 	}
-	if (statusModel.isAccidentalLevel()) {		
+	if (statusModel.isAccidentalLevel()) {
 		notationModel.setAddAccidental(true);
 	}
-	else {		
+	else {
 		notationModel.setAddAccidental(false);
 	}
-	if (statusModel.isKeySignatureLevel()) {		
+	if (statusModel.isKeySignatureLevel()) {
 		notationModel.setAddKeySignature(true);
 		notationModel.setKeySignatureLevel(statusModel.getKeySignatureLevel());
 		notationModel.setKeySignature(notationModel.randomKeySignature());		
 	}
-	else {		
+	else {
 		notationModel.setAddKeySignature(false);
 		notationModel.setKeySignature(cfg.C);
 	}
@@ -387,29 +518,7 @@ Flash.Notes.Keyboard.GameController.prototype.updateLevel = function () {
 	this.displaySessionAlert(true, false, false);
 }
 
-Flash.Notes.Keyboard.GameController.prototype.displayPractice = function () {
-	this.init();
-	this.setMode(cfg.PRACTICE_MODE);
-	$('#menu_frame').hide();
-	$('#status_level_label').html("");
-	$('#status_level').html("");
-	$('#game_frame').show();		
-	$('#menu_buttons').show();
-	$('#game_status_box').hide();
-	$('#stop_button').hide();
-	$('#start_button').show();
-	statusView.initHitDisplay("hit_light");
-}
 
-Flash.Notes.Keyboard.GameController.prototype.displayGame = function () {
-	this.init();
-	this.setMode(cfg.GAME_MODE);
-	statusView.initLivesDisplay("game_lives", cfg.MAX_LIVES);
-	statusView.initHitDisplay("hit_light");
-	$('#status_level_label').html("Level:");
-	$('#status_level').html("1");
-	this.displaySessionAlert(true, false, false);		
-}
 
 /* Display points, percent, and total score on Status Bar on Game Screen */
 Flash.Notes.Keyboard.GameController.prototype.displayScore = function () {	
@@ -535,7 +644,7 @@ Flash.Notes.Keyboard.GameController.prototype.processFinalScore = function () {
 
 Flash.Notes.Keyboard.GameController.prototype.displayFinalScore = function (success) {
 	var i, score, date, time, 
-		rank = "",		
+		rank = "",
 		scores = "",
 		dates = "",
 		footer_string = "your score: " + statusModel.getScore(),
