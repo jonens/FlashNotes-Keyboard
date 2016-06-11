@@ -1,6 +1,6 @@
 /* "Keyboard" namespace for the "Flash.Notes" games */
 
 /**
- * Notes namespace.
+ * Keyboard namespace.
  */
-Flash.Notes.Keyboard = {}
+Flash.Notes.Keyboard = function () {}

@@ -6,46 +6,46 @@
 		<script src="../JQuery/jquery-1.6.2.min.js"></script>
 		<script type="text/javascript" src="js/modernizr.custom.18580.js"></script>
 		<script>
-			if (!Modernizr.canvas) {				
-				$('#raphael').remove();			
-			}			
+			if (!Modernizr.canvas) {
+				$('#raphael').remove();
+			}
 		</script>
 		<script type="text/javascript" src="js/raphael_min.js" id="raphael"></script>
-		
+
 		<!-- VexFlow compiled source -->
 		<script type="text/javascript" src="js/vexflow_mod_min.js"></script>
-		
+
 		<script type="text/javascript" src="js/fn_keys_min.js"></script>
-		
+
 		<!--<meta name="viewport" content="user-scalable=no, width=device-width" />-->
-		<meta name="viewport" content="initial-scale=1.0; maximum-scale=1.0; minimum-scale=1.0; user-scalable=0;" />
+		<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
 	</head>
 	<body>
-		<noscript>Your browser does not support JavaScript.  FlashNotes requires 
-			JavaScript and a modern browser such as 
-			<a href="http://www.mozilla.com/en-US/firefox/fx/" target="_blank">FireFox</a>, 
-			<a href="http://www.google.com/chrome/" target="_blank">Chrome</a>, 
-			<a href="http://www.apple.com/safari/" target="_blank">Safari</a>, 
-			<a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home" target="_blank">IE9</a>, 
+		<noscript>Your browser does not support JavaScript.  FlashNotes requires
+			JavaScript and a modern browser such as
+			<a href="http://www.mozilla.com/en-US/firefox/fx/" target="_blank">FireFox</a>,
+			<a href="http://www.google.com/chrome/" target="_blank">Chrome</a>,
+			<a href="http://www.apple.com/safari/" target="_blank">Safari</a>,
+			<a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home" target="_blank">IE9</a>,
 			or <a href="http://www.opera.com/" target="_blank">Opera</a>.
 		</noscript>
 		<script>
 			var statusModel;// = new StatusModel();
 			var statusView;// = new StatusView();
 			var notationModel;
-			var notationController;// = new ScoreController(2);			
+			var notationController;// = new ScoreController(2);
 			var gameController;// = new GameController();
-			var ajaxUtilities = new Flash.Notes.Keyboard.AjaxUtilities();
-		</script>		
+			var ajaxUtilities = new Games.Common.AjaxUtilities();
+		</script>
 		<div id="nocanvas_frame" title="No Canvas" class="frame">
 				<h2>No &lt;canvas&gt; Support</h2>
-				<p class="no_canvas">FlashNotes requires JavaScript and a modern browser such as 
-			<a href="http://www.mozilla.com/en-US/firefox/fx/" target="_blank">FireFox</a>, 
-			<a href="http://www.google.com/chrome/" target="_blank">Chrome</a>, 
-			<a href="http://www.apple.com/safari/" target="_blank">Safari</a>, 
-			<a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home" target="_blank">IE9</a>, 
+				<p class="no_canvas">FlashNotes requires JavaScript and a modern browser such as
+			<a href="http://www.mozilla.com/en-US/firefox/fx/" target="_blank">FireFox</a>,
+			<a href="http://www.google.com/chrome/" target="_blank">Chrome</a>,
+			<a href="http://www.apple.com/safari/" target="_blank">Safari</a>,
+			<a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home" target="_blank">IE9</a>,
 			or <a href="http://www.opera.com/" target="_blank">Opera</a>.</p>
-			<p class="go_home"><a href="http://pedaplus.com/cms/node/2">back to games page</a></p>
+			<p class="go_home"><a href="http://pedaplus.com/cms/">back to games page</a></p>
 		</div>
 		<div id="menu_frame" class="frame">
 			<h1 class="info">Welcome to FlashNotes</h1>
@@ -56,8 +56,10 @@
 						Play Game</button>
 				<button type="button" class="dialog" id="instructions_button">
 						Instructions</button>
+				<button type="button" class="dialog" id="show_top_scores_button">
+						Top Scores</button>
 			</div>
-			<p class="go_home"><a href="http://pedaplus.com/cms/node/2">back to games page</a></p>
+			<p class="go_home"><a href="http://pedaplus.com/cms/games">back to games page</a></p>
 			<p class="vexflow">Made with <a href="http://vexflow.com/" target="_blank">VexFlow</a></p>
 		</div>
 		<div id="instructions_frame" title="FlashNotes:Keyboard Instructions" class="frame">
@@ -66,10 +68,10 @@
 				<li>Practice Mode:
 					<ul class="instruction_list">
 						<li>Use buttons on the right side menu to toggle clef combinations, accidental types, and key signatures.
-						<li>Press the Start button when ready to play.</li>						
+						<li>Press the Start button when ready to play.</li>
 						<li>There is no time limit. Start and stop whenever you wish.</li>
 					</ul>
-				</li>				
+				</li>
 				<li>Game Mode:
 					<ul class="instruction_list">
 						<li>Work quickly! Each session is timed.</li>
@@ -86,8 +88,8 @@
 				<button type="button" class="dialog" id="back_button">
 						Back to Menu</button>
 			</div>
-		</div>		
-		<div id="game_frame" class="frame">			
+		</div>
+		<div id="game_frame" class="frame">
 			<div class="status_bar" id="status_bar_top">
 				<table class="status_bar_table">
 					<tr>
@@ -99,11 +101,11 @@
 						<td class="status_bar_td_label score" id="status_score_label">Score: </td>
 						<td class="status_bar_td score" id="status_score">00000</td>
 					</tr>
-				</table>			
-			</div>			
+				</table>
+			</div>
 			<div class="hit_box" id="hit_light"></div>
 			<div class="logo" id="fn_logo"></div>
-			<div class="staff_area" id="staff_box">				
+			<div class="staff_area" id="staff_box">
 				<canvas class="background" id="staff" height = "210" width = "360"></canvas>
 			</div>
 			<div id="input_buttons" class="input_box">
@@ -135,42 +137,42 @@
 				<div id="game_lives_label" class="status">Lives</div>
 				<div id="game_lives" class="status"></div>
 			</div>
-			<div id="menu_buttons" class="menu_box">			
+			<div id="menu_buttons" class="menu_box">
 				<div id="menurow1" class="clef_sel">
 					<table id="clef_buttons">
 						<tr>
-							<td><button type="button" id="treble_button" 
+							<td><button type="button" id="treble_button"
 											class="clefBtn" value='0'></button></td>
-							<td><button type="button" id="bass_button" 
+							<td><button type="button" id="bass_button"
 											class="clefBtn" value='1'></button></td>
 						</tr>
 						<tr>
-							<td><button type="button" id="alto_button" 
+							<td><button type="button" id="alto_button"
 											class="clefBtn" value='2'></button></td>
-							<td><button type="button" id="tenor_button" 
+							<td><button type="button" id="tenor_button"
 											class="clefBtn" value='3'></button></td>
 						</tr>
 					</table>
 				</div>
 				<div id="menurow2" class="accid_sel">
-					<button type="button" class="accid_sel_Btn" 
+					<button type="button" class="accid_sel_Btn"
 						id="acc_single_sel_button" value="single_acc"></button>
-					<button type="button" class="accid_sel_Btn" 
+					<button type="button" class="accid_sel_Btn"
 						id="acc_double_sel_button" value="double_acc"></button>
 				</div>
 				<div id="menurow3" class="keysig_sel">
 					<button class="keysig_sel_Btn" id="ks_sel_left" value="-1">
 					</button>
 					<button class="keysig_sel_Btn" id="ks_sel_right" value="1">
-					</button>					
+					</button>
 				</div>
 				<div id="menurow4">
-					<button type="button" id="start_button" class="start_stop_Btn"></button>				
+					<button type="button" id="start_button" class="start_stop_Btn"></button>
 					<button type="button" id="stop_button" class="start_stop_Btn"></button>
-				</div>				
-			</div>			
-		</div>		
-		<div id="summary_frame" class="frame">		
+				</div>
+			</div>
+		</div>
+		<div id="summary_frame" class="frame">
 			<h3>Results</h3>
 			<table class="tbl_summary">
 				<tr id="score_summary_row">
@@ -197,14 +199,14 @@
 					<td class="summary_label" id="summary_lives_label">Lives: </td>
 					<td class="td_summary" id="lives_summary"></td>
 				</tr>
-			</table>			
+			</table>
 			<div id="summary_buttons" class="sum_buttons">
-				<button type="button" class="summary" 
+				<button type="button" class="summary"
 							id="sum_continue_button">Continue</button>
-				<button type="button" class="summary" 
+				<button type="button" class="summary"
 							id="quit_button">Quit</button>
-			</div>			
-		</div>		
+			</div>
+		</div>
 		<div id="session_frame" class="frame">
 			<div id="session_start" class="session_table">
 				<h3 id="session_start_header">Level</h3>
@@ -216,13 +218,13 @@
 				<p id="lives" class="session"></p>
 				<p id="bonus" class="session"></p>
 				<button type="button" class="session" id="session_end_button">Summary
-					</button>				
-			</div>			
+					</button>
+			</div>
 			<div id="game_end" class="session_table">
 				<h3 id="game_end_header">Game Over!</h3>
 				<button type="button" class="session" id="scores_button">Scores</button>
-			</div>			
-		</div>		
+			</div>
+		</div>
 		<div id="score_display_frame" class="frame">
 			<h2>Top 10 Scores</h2>
 			<div id="top_score_box" class="score_box">
@@ -235,4 +237,3 @@
 		</div>
 	</body>
 </html>
-	
